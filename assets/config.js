@@ -1,20 +1,22 @@
 /**
- * Site configuration — replace placeholders before going fully live.
- *
- * FORMSPREE_ENDPOINT:
- *   1. Sign up at https://formspree.io
- *   2. Create a form and copy the endpoint (e.g. https://formspree.io/f/xxxxxx)
- *   3. Paste it below
- *
- * GA_MEASUREMENT_ID:
- *   1. Create a GA4 property at https://analytics.google.com
- *   2. Copy the Measurement ID (G-XXXXXXXX)
- *   3. Paste it below
- *
- * Leave either value empty ("") to disable that integration safely.
+ * ProLevelThinker site configuration
+ * Fill in real values, commit, and redeploy.
  */
 window.PLT_CONFIG = {
   FORMSPREE_ENDPOINT: "",
   GA_MEASUREMENT_ID: "",
-  SITE_NAME: "ProLevelThinker"
+
+  /* WhatsApp — country code without + or spaces, e.g. 8801712345678 */
+  WHATSAPP_NUMBER: "8801700000000",
+  WHATSAPP_DEFAULT_MESSAGE:
+    "Hi ProLevelThinker — I need a website / SEO quote. Budget: ",
+
+  /* Cal.com or Calendly public booking link */
+  CALENDAR_URL: "https://cal.com/",
+
+  SITE_NAME: "ProLevelThinker",
+
+  ENABLE_CHATBOT: true,
+  ENABLE_EXIT_INTENT: true,
+  ENABLE_STICKY_WHATSAPP: true
 };
