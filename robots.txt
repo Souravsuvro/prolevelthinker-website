@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://prolevelthinker.com/sitemap.xml
+# Also works on GitHub Pages: https://souravsuvro.github.io/prolevelthinker-website/sitemap.xml
