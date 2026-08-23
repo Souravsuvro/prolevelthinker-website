@@ -1,212 +1,109 @@
-/* ProLevelThinker — interactive tools (stack matcher, scope builder, meta checker) */
-(function () {
-  function track(name, params) {
-    if (window.PLT && window.PLT.trackEvent) window.PLT.trackEvent(name, params || {});
-    else if (typeof window.gtag === "function") window.gtag("event", name, params || {});
-  }
-  function wa(msg, src) {
-    if (window.PLT && window.PLT.openWhatsApp) window.PLT.openWhatsApp(msg, src);
-  }
+/* ProLevelThinker free tools — production */
+(function(){
+"use strict";
+function track(n,p){if(window.PLT&&window.PLT.trackEvent)window.PLT.trackEvent(n,p||{});else if(typeof window.gtag==="function")window.gtag("event",n,p||{});}
+function wa(m,s){if(window.PLT&&window.PLT.openWhatsApp)window.PLT.openWhatsApp(m,s);}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&").replace(/</g,"<").replace(/>/g,">").replace(/"/g,""");}
+function progress(pct){return '<div class="tool-progress" role="progressbar" aria-valuenow="'+pct+'"><i style="width:'+pct+'%"></i></div>';}
 
-  function initStackMatcher() {
-    var root = document.getElementById("stack-matcher-app");
-    if (!root) return;
-    var scores = { wordpress: 0, shopify: 0, nextjs: 0 };
-    var i = 0;
-    var steps = [
-      { q: "What is the primary goal of this site?", options: [
-        { t: "Brochure / lead generation", w: 2, s: 0, n: 1 },
-        { t: "Sell products online", w: 0, s: 3, n: 1 },
-        { t: "Custom product / portal / SaaS", w: 0, s: 0, n: 3 },
-        { t: "Content / blog heavy", w: 3, s: 0, n: 1 } ] },
-      { q: "Who will update content after launch?", options: [
-        { t: "Non-technical staff", w: 3, s: 2, n: 0 },
-        { t: "Marketing + light technical help", w: 2, s: 2, n: 1 },
-        { t: "Developers on the team", w: 1, s: 1, n: 3 },
-        { t: "Mostly us (agency care plan)", w: 2, s: 2, n: 2 } ] },
-      { q: "Rough build budget (BDT)?", options: [
-        { t: "Under ৳50,000", w: 3, s: 1, n: 0 },
-        { t: "৳50,000–৳150,000", w: 2, s: 2, n: 1 },
-        { t: "৳150,000–৳400,000", w: 1, s: 2, n: 2 },
-        { t: "৳400,000+", w: 1, s: 1, n: 3 } ] },
-      { q: "Which integrations matter most?", options: [
-        { t: "Forms, WhatsApp, basic analytics", w: 3, s: 1, n: 1 },
-        { t: "Payments, inventory, shipping", w: 1, s: 3, n: 1 },
-        { t: "Custom APIs, auth, databases", w: 0, s: 0, n: 3 },
-        { t: "Not sure yet", w: 2, s: 1, n: 1 } ] },
-      { q: "Ideal launch window?", options: [
-        { t: "2–4 weeks", w: 3, s: 2, n: 0 },
-        { t: "1–2 months", w: 2, s: 2, n: 1 },
-        { t: "2–4 months (build it right)", w: 1, s: 1, n: 3 },
-        { t: "Flexible", w: 2, s: 2, n: 2 } ] }
-    ];
-    function render() {
-      if (i >= steps.length) return result();
-      var step = steps[i];
-      var pct = Math.round((i / steps.length) * 100);
-      root.innerHTML = '<div class="tool-progress"><i style="width:' + pct + '%"></i></div><div class="tool-question"><h3>' + (i + 1) + ". " + step.q + '</h3><div class="tool-options"></div></div>';
-      var box = root.querySelector(".tool-options");
-      step.options.forEach(function (opt) {
-        var b = document.createElement("button");
-        b.type = "button"; b.textContent = opt.t;
-        b.addEventListener("click", function () {
-          scores.wordpress += opt.w; scores.shopify += opt.s; scores.nextjs += opt.n; i++; render();
-        });
-        box.appendChild(b);
-      });
-    }
-    function result() {
-      var best = "wordpress";
-      if (scores.shopify >= scores.wordpress && scores.shopify >= scores.nextjs) best = "shopify";
-      if (scores.nextjs >= scores.wordpress && scores.nextjs >= scores.shopify) best = "nextjs";
-      var map = {
-        wordpress: { name: "WordPress", blurb: "Best for editable pages, blogs, and service sites without a full engineering team.", why: ["Familiar editor for non-technical updates", "Strong for SEO content structure", "Faster launch for brochure / lead-gen sites"], link: "../../wordpress-shopify-ai-websites/" },
-        shopify: { name: "Shopify", blurb: "Best when selling products is the core job — payments, catalog, and checkout.", why: ["Built-in commerce and payments", "Mobile-ready storefront patterns", "Less custom code for standard e-commerce"], link: "../../wordpress-shopify-ai-websites/" },
-        nextjs: { name: "Next.js / custom", blurb: "Best for products, portals, and performance-critical apps.", why: ["Full control of UX and data", "APIs, auth, and complex workflows", "Scales with engineering, not theme limits"], link: "../../web-design-development/" }
-      };
-      var r = map[best];
-      track("stack_matcher_complete", { stack: best });
-      root.innerHTML = '<div class="tool-result"><p class="eyebrow">Recommended stack</p><div class="score" style="font-size:clamp(1.8rem,4vw,2.6rem)">' + r.name + '</div><p><strong>' + r.blurb + '</strong></p><ul class="features" style="text-align:left;max-width:480px;margin:16px auto">' + r.why.map(function (x) { return "<li>" + x + "</li>"; }).join("") + '</ul><p class="proof-line">Guidance only — final choice follows discovery.</p><div class="micro-cta-row"><a class="button" href="' + r.link + '">See related service →</a><button type="button" class="button button--whatsapp" id="sm-wa">Discuss on WhatsApp</button><button type="button" class="button button--outline" id="sm-retry">Retake quiz</button></div></div>';
-      root.querySelector("#sm-wa").addEventListener("click", function () {
-        wa("Hi ProLevelThinker — stack matcher recommended " + r.name + ". I'd like to discuss fit for my project.", "stack_matcher");
-      });
-      root.querySelector("#sm-retry").addEventListener("click", function () {
-        scores = { wordpress: 0, shopify: 0, nextjs: 0 }; i = 0; render();
-      });
-    }
-    render();
-  }
+function initStackMatcher(){
+var root=document.getElementById("stack-matcher-app");if(!root)return;
+var scores={wordpress:0,shopify:0,nextjs:0},i=0;
+var steps=[
+{q:"What is the primary job of this project?",options:[{t:"Marketing site / leads / brochure",w:3,s:0,n:1},{t:"Sell products online (catalog + checkout)",w:1,s:3,n:1},{t:"Custom app, portal, or SaaS product",w:0,s:0,n:3},{t:"Content hub / blog / publishing",w:3,s:0,n:1}]},
+{q:"Who will update content after launch?",options:[{t:"Non-technical staff (owner, marketing)",w:3,s:2,n:0},{t:"Marketing with occasional developer help",w:2,s:2,n:1},{t:"In-house developers",w:1,s:1,n:3},{t:"Mostly the agency on a care plan",w:2,s:2,n:2}]},
+{q:"Rough build budget (BDT)?",options:[{t:"Under ৳50,000",w:3,s:1,n:0},{t:"৳50,000 – ৳150,000",w:2,s:2,n:1},{t:"৳150,000 – ৳400,000",w:1,s:2,n:2},{t:"৳400,000+",w:1,s:1,n:3}]},
+{q:"Which capabilities matter most?",options:[{t:"Forms, WhatsApp, basic analytics",w:3,s:1,n:1},{t:"Payments, inventory, shipping",w:1,s:3,n:1},{t:"Custom APIs, login, databases, workflows",w:0,s:0,n:3},{t:"Not sure yet",w:2,s:1,n:1}]},
+{q:"Ideal launch window?",options:[{t:"2–4 weeks",w:3,s:2,n:0},{t:"1–2 months",w:2,s:2,n:1},{t:"2–4 months (build it properly)",w:1,s:1,n:3},{t:"Flexible",w:2,s:2,n:2}]}];
+function render(){if(i>=steps.length)return result();var step=steps[i],pct=Math.round((i/steps.length)*100);
+root.innerHTML=progress(pct)+'<div class="tool-question"><h3>'+(i+1)+". "+esc(step.q)+'</h3><div class="tool-options"></div></div><p class="proof-line">Question '+(i+1)+" of "+steps.length+" · ~60 seconds</p>";
+var box=root.querySelector(".tool-options");step.options.forEach(function(opt){var b=document.createElement("button");b.type="button";b.textContent=opt.t;b.addEventListener("click",function(){scores.wordpress+=opt.w;scores.shopify+=opt.s;scores.nextjs+=opt.n;i++;render();});box.appendChild(b);});}
+function result(){var best="wordpress";if(scores.shopify>=scores.wordpress&&scores.shopify>=scores.nextjs)best="shopify";if(scores.nextjs>=scores.wordpress&&scores.nextjs>=scores.shopify)best="nextjs";
+var map={wordpress:{name:"WordPress",blurb:"Best default for marketing sites, service businesses, and content teams who publish without developers.",why:["Non-technical editors can update pages and blogs","Strong SEO plugins and content workflows","Faster launch for brochure and lead-gen sites","Huge ecosystem of forms, multilingual, and local tools"],watch:"Performance and security need active management.",link:"../../wordpress-shopify-ai-websites/"},
+shopify:{name:"Shopify",blurb:"Best when selling products is the core job — catalog, checkout, payments, and shipping.",why:["Checkout and payments production-ready on day one","Admin handles products and orders without code","App ecosystem for shipping and marketing","Faster path to a live store than custom commerce"],watch:"Transaction fees and theme limits; complex UX may need headless later.",link:"../../wordpress-shopify-ai-websites/"},
+nextjs:{name:"Next.js / custom",blurb:"Best for products, portals, and performance-critical experiences where templates become a bottleneck.",why:["Full control of UX, data models, and workflows","Auth, APIs, dashboards, and complex permissions","Excellent Core Web Vitals when built well","Scales with engineering, not plugin constraints"],watch:"Higher upfront investment; needs developer ownership after launch.",link:"../../web-design-development/"}};
+var r=map[best],total=scores.wordpress+scores.shopify+scores.nextjs||1;
+function bar(key,label){var pct=Math.round((scores[key]/total)*100);return '<div style="margin:8px 0"><div style="display:flex;justify-content:space-between;font-size:.85rem;font-weight:700"><span>'+label+"</span><span>"+pct+'%</span></div><div class="tool-progress" style="margin:4px 0 0"><i style="width:'+pct+'%"></i></div></div>';}
+track("stack_matcher_complete",{stack:best});
+root.innerHTML='<div class="tool-result"><p class="eyebrow">Recommended stack</p><div class="score" style="font-size:clamp(1.75rem,4vw,2.5rem)">'+esc(r.name)+'</div><p><strong>'+esc(r.blurb)+'</strong></p><div style="text-align:left;max-width:420px;margin:16px auto">'+bar("wordpress","WordPress")+bar("shopify","Shopify")+bar("nextjs","Next.js / custom")+'</div><ul class="features" style="text-align:left;max-width:480px;margin:16px auto">'+r.why.map(function(x){return "<li>"+esc(x)+"</li>";}).join("")+'</ul><p style="text-align:left;max-width:480px;margin:0 auto;color:var(--muted);font-size:.9rem"><strong>Watch-out:</strong> '+esc(r.watch)+'</p><p class="proof-line">Guidance only — final choice follows discovery.</p><div class="micro-cta-row"><a class="button" href="'+r.link+'">See related service →</a><button type="button" class="button button--whatsapp" id="sm-wa">Discuss on WhatsApp</button><button type="button" class="button button--outline" id="sm-retry">Retake quiz</button></div></div>';
+root.querySelector("#sm-wa").addEventListener("click",function(){wa("Hi ProLevelThinker — stack matcher recommended "+r.name+". I'd like to discuss fit for my project.","stack_matcher");});
+root.querySelector("#sm-retry").addEventListener("click",function(){scores={wordpress:0,shopify:0,nextjs:0};i=0;render();});}
+render();}
 
-  function initScopeBuilder() {
-    var root = document.getElementById("scope-builder-app");
-    if (!root) return;
-    var data = { business: "", goal: "", pages: [], features: [], timeline: "", budget: "", notes: "" };
-    var step = 0;
-    var pageOpts = ["Home", "About", "Services", "Service detail", "Portfolio", "Blog", "Contact", "Shop", "Pricing", "FAQ"];
-    var featureOpts = ["Contact form", "WhatsApp CTA", "Blog / CMS", "Online store", "Booking", "User login", "Dashboard", "Multi-language", "SEO package", "Analytics"];
-    function esc(s) { return String(s).replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, """); }
-    function nav(html) {
-      return '<div class="tool-progress"><i style="width:' + Math.round((step / 6) * 100) + '%"></i></div>' + html +
-        '<div class="micro-cta-row" style="margin-top:20px">' + (step > 0 ? '<button type="button" class="button button--outline" id="sb-back">Back</button>' : '') +
-        '<button type="button" class="button" id="sb-next">' + (step === 5 ? "Generate brief" : "Continue") + '</button></div>';
-    }
-    function render() {
-      var html = "";
-      if (step === 0) html = nav('<div class="tool-question"><h3>1. Business name</h3><div class="field"><input id="sb-business" placeholder="e.g. Green Leaf Clinic" value="' + esc(data.business) + '"></div></div>');
-      else if (step === 1) html = nav('<div class="tool-question"><h3>2. Primary goal</h3><div class="tool-options" id="sb-goals"></div></div>');
-      else if (step === 2) html = nav('<div class="tool-question"><h3>3. Pages you need</h3><p style="color:var(--muted);font-size:.9rem">Select all that apply</p><div class="tool-options" id="sb-pages"></div></div>');
-      else if (step === 3) html = nav('<div class="tool-question"><h3>4. Features</h3><div class="tool-options" id="sb-features"></div></div>');
-      else if (step === 4) html = nav('<div class="tool-question"><h3>5. Timeline & budget</h3><div class="field"><label>Timeline</label><select id="sb-timeline"><option value="">Select</option><option>2–4 weeks</option><option>1–2 months</option><option>2–3 months</option><option>Flexible</option></select></div><div class="field"><label>Budget band</label><select id="sb-budget"><option value="">Select</option><option>Under ৳50,000</option><option>৳50,000–৳100,000</option><option>৳100,000–৳250,000</option><option>৳250,000+</option><option>Need guidance</option></select></div></div>');
-      else if (step === 5) html = nav('<div class="tool-question"><h3>6. Anything else?</h3><div class="field"><textarea id="sb-notes" rows="4" placeholder="Competitors, integrations, brand notes…">' + esc(data.notes) + '</textarea></div></div>');
-      else { showBrief(); return; }
-      root.innerHTML = html;
-      wire();
-    }
-    function wire() {
-      var back = root.querySelector("#sb-back");
-      var next = root.querySelector("#sb-next");
-      if (back) back.addEventListener("click", function () { step--; render(); });
-      if (step === 1) {
-        ["Generate leads", "Sell products", "Launch a product/app", "Rebuild an existing site"].forEach(function (g) {
-          var b = document.createElement("button"); b.type = "button"; b.textContent = g;
-          if (data.goal === g) b.classList.add("is-selected");
-          b.addEventListener("click", function () {
-            data.goal = g;
-            root.querySelectorAll("#sb-goals button").forEach(function (x) { x.classList.remove("is-selected"); });
-            b.classList.add("is-selected");
-          });
-          root.querySelector("#sb-goals").appendChild(b);
-        });
-      }
-      if (step === 2) {
-        pageOpts.forEach(function (p) {
-          var b = document.createElement("button"); b.type = "button"; b.textContent = p;
-          if (data.pages.indexOf(p) !== -1) b.classList.add("is-selected");
-          b.addEventListener("click", function () {
-            var ix = data.pages.indexOf(p);
-            if (ix === -1) { data.pages.push(p); b.classList.add("is-selected"); }
-            else { data.pages.splice(ix, 1); b.classList.remove("is-selected"); }
-          });
-          root.querySelector("#sb-pages").appendChild(b);
-        });
-      }
-      if (step === 3) {
-        featureOpts.forEach(function (f) {
-          var b = document.createElement("button"); b.type = "button"; b.textContent = f;
-          if (data.features.indexOf(f) !== -1) b.classList.add("is-selected");
-          b.addEventListener("click", function () {
-            var ix = data.features.indexOf(f);
-            if (ix === -1) { data.features.push(f); b.classList.add("is-selected"); }
-            else { data.features.splice(ix, 1); b.classList.remove("is-selected"); }
-          });
-          root.querySelector("#sb-features").appendChild(b);
-        });
-      }
-      if (step === 4) {
-        if (data.timeline) root.querySelector("#sb-timeline").value = data.timeline;
-        if (data.budget) root.querySelector("#sb-budget").value = data.budget;
-      }
-      if (next) next.addEventListener("click", function () {
-        if (step === 0) {
-          data.business = (root.querySelector("#sb-business") || {}).value || "";
-          if (!data.business.trim()) { alert("Please enter a business name."); return; }
-        }
-        if (step === 1 && !data.goal) { alert("Select a primary goal."); return; }
-        if (step === 2 && data.pages.length === 0) { alert("Select at least one page."); return; }
-        if (step === 4) {
-          data.timeline = root.querySelector("#sb-timeline").value;
-          data.budget = root.querySelector("#sb-budget").value;
-        }
-        if (step === 5) data.notes = (root.querySelector("#sb-notes") || {}).value || "";
-        step++; render();
-      });
-    }
-    function showBrief() {
-      track("scope_builder_complete", { pages: data.pages.length });
-      var text = "PROJECT BRIEF — ProLevelThinker\nBusiness: " + data.business + "\nGoal: " + data.goal + "\nPages: " + data.pages.join(", ") + "\nFeatures: " + (data.features.join(", ") || "—") + "\nTimeline: " + (data.timeline || "—") + "\nBudget: " + (data.budget || "—") + "\nNotes: " + (data.notes || "—") + "\n";
-      root.innerHTML = '<div class="tool-result" style="text-align:left"><p class="eyebrow">Your project brief</p><h3 style="margin:0 0 12px">' + esc(data.business) + '</h3><p><strong>Goal:</strong> ' + esc(data.goal) + '</p><p><strong>Pages:</strong> ' + esc(data.pages.join(", ")) + '</p><p><strong>Features:</strong> ' + esc(data.features.join(", ") || "—") + '</p><p><strong>Timeline:</strong> ' + esc(data.timeline || "—") + ' · <strong>Budget:</strong> ' + esc(data.budget || "—") + '</p>' + (data.notes ? '<p><strong>Notes:</strong> ' + esc(data.notes) + '</p>' : '') + '<div class="micro-cta-row"><button type="button" class="button button--whatsapp" id="sb-wa">Send brief on WhatsApp</button><button type="button" class="button button--outline" id="sb-copy">Copy brief</button><button type="button" class="button button--outline" id="sb-restart">Start over</button></div><p class="proof-line">Starting point — we refine scope before quoting.</p></div>';
-      root.querySelector("#sb-wa").addEventListener("click", function () { wa("Hi ProLevelThinker — here is my project brief:\n\n" + text, "scope_builder"); });
-      root.querySelector("#sb-copy").addEventListener("click", function () { if (navigator.clipboard) navigator.clipboard.writeText(text); this.textContent = "Copied!"; });
-      root.querySelector("#sb-restart").addEventListener("click", function () {
-        data = { business: "", goal: "", pages: [], features: [], timeline: "", budget: "", notes: "" }; step = 0; render();
-      });
-    }
-    render();
-  }
+function initScopeBuilder(){
+var root=document.getElementById("scope-builder-app");if(!root)return;
+var data={business:"",goal:"",pages:[],features:[],timeline:"",budget:"",notes:""},step=0;
+var pageOpts=["Home","About","Services","Service detail pages","Portfolio / work","Blog","Contact","Shop / catalog","Pricing","FAQ","Login / account"];
+var featureOpts=["Contact form","WhatsApp CTA","Blog / CMS","Online store / cart","Booking / calendar","User login","Admin dashboard","Multi-language","SEO package","Analytics & events","Payment gateway","CRM integration"];
+function nav(html){return progress(Math.round((step/6)*100))+html+'<div class="micro-cta-row" style="margin-top:20px">'+(step>0?'<button type="button" class="button button--outline" id="sb-back">Back</button>':'')+'<button type="button" class="button" id="sb-next">'+(step===5?"Generate brief":"Continue")+"</button></div>";}
+function render(){var html="";
+if(step===0)html=nav('<div class="tool-question"><h3>1. Business name</h3><div class="field"><label for="sb-business">Name</label><input id="sb-business" autocomplete="organization" placeholder="e.g. Green Leaf Clinic" value="'+esc(data.business)+'"></div></div>');
+else if(step===1)html=nav('<div class="tool-question"><h3>2. Primary goal</h3><div class="tool-options" id="sb-goals"></div></div>');
+else if(step===2)html=nav('<div class="tool-question"><h3>3. Pages you need</h3><p style="color:var(--muted);font-size:.9rem">Select all that apply</p><div class="tool-options" id="sb-pages"></div></div>');
+else if(step===3)html=nav('<div class="tool-question"><h3>4. Features</h3><div class="tool-options" id="sb-features"></div></div>');
+else if(step===4)html=nav('<div class="tool-question"><h3>5. Timeline & budget</h3><div class="field"><label for="sb-timeline">Timeline</label><select id="sb-timeline"><option value="">Select</option><option>2–4 weeks</option><option>1–2 months</option><option>2–3 months</option><option>Flexible</option></select></div><div class="field"><label for="sb-budget">Budget band (BDT)</label><select id="sb-budget"><option value="">Select</option><option>Under ৳50,000</option><option>৳50,000–৳100,000</option><option>৳100,000–৳250,000</option><option>৳250,000+</option><option>Need guidance</option></select></div></div>');
+else if(step===5)html=nav('<div class="tool-question"><h3>6. Anything else?</h3><div class="field"><label for="sb-notes">Notes (optional)</label><textarea id="sb-notes" rows="4" placeholder="Competitors, integrations, brand notes…">'+esc(data.notes)+'</textarea></div></div>');
+else{showBrief();return;}root.innerHTML=html;wire();}
+function wire(){var back=root.querySelector("#sb-back"),next=root.querySelector("#sb-next");
+if(back)back.addEventListener("click",function(){step--;render();});
+if(step===1){["Generate leads","Sell products","Launch a product / app","Rebuild an existing site"].forEach(function(g){var b=document.createElement("button");b.type="button";b.textContent=g;if(data.goal===g)b.classList.add("is-selected");b.addEventListener("click",function(){data.goal=g;root.querySelectorAll("#sb-goals button").forEach(function(x){x.classList.remove("is-selected");});b.classList.add("is-selected");});root.querySelector("#sb-goals").appendChild(b);});}
+if(step===2){pageOpts.forEach(function(p){var b=document.createElement("button");b.type="button";b.textContent=p;if(data.pages.indexOf(p)!==-1)b.classList.add("is-selected");b.addEventListener("click",function(){var ix=data.pages.indexOf(p);if(ix===-1){data.pages.push(p);b.classList.add("is-selected");}else{data.pages.splice(ix,1);b.classList.remove("is-selected");}});root.querySelector("#sb-pages").appendChild(b);});}
+if(step===3){featureOpts.forEach(function(f){var b=document.createElement("button");b.type="button";b.textContent=f;if(data.features.indexOf(f)!==-1)b.classList.add("is-selected");b.addEventListener("click",function(){var ix=data.features.indexOf(f);if(ix===-1){data.features.push(f);b.classList.add("is-selected");}else{data.features.splice(ix,1);b.classList.remove("is-selected");}});root.querySelector("#sb-features").appendChild(b);});}
+if(step===4){if(data.timeline)root.querySelector("#sb-timeline").value=data.timeline;if(data.budget)root.querySelector("#sb-budget").value=data.budget;}
+if(next)next.addEventListener("click",function(){if(step===0){data.business=(root.querySelector("#sb-business")||{}).value||"";if(!data.business.trim()){alert("Please enter a business name.");return;}}if(step===1&&!data.goal){alert("Select a primary goal.");return;}if(step===2&&data.pages.length===0){alert("Select at least one page.");return;}if(step===4){data.timeline=root.querySelector("#sb-timeline").value;data.budget=root.querySelector("#sb-budget").value;}if(step===5)data.notes=(root.querySelector("#sb-notes")||{}).value||"";step++;render();});}
+function showBrief(){track("scope_builder_complete",{pages:data.pages.length,features:data.features.length});
+var text="PROJECT BRIEF — ProLevelThinker\nBusiness: "+data.business+"\nGoal: "+data.goal+"\nPages: "+data.pages.join(", ")+"\nFeatures: "+(data.features.join(", ")||"—")+"\nTimeline: "+(data.timeline||"—")+"\nBudget: "+(data.budget||"—")+"\nNotes: "+(data.notes||"—")+"\n";
+root.innerHTML='<div class="tool-result" style="text-align:left"><p class="eyebrow">Your project brief</p><h3 style="margin:0 0 12px">'+esc(data.business)+'</h3><p><strong>Goal:</strong> '+esc(data.goal)+'</p><p><strong>Pages ('+data.pages.length+'):</strong> '+esc(data.pages.join(", "))+'</p><p><strong>Features:</strong> '+esc(data.features.join(", ")||"—")+'</p><p><strong>Timeline:</strong> '+esc(data.timeline||"—")+' · <strong>Budget:</strong> '+esc(data.budget||"—")+'</p>'+(data.notes?'<p><strong>Notes:</strong> '+esc(data.notes)+'</p>':'')+'<div class="micro-cta-row"><button type="button" class="button button--whatsapp" id="sb-wa">Send brief on WhatsApp</button><button type="button" class="button button--outline" id="sb-copy">Copy brief</button><button type="button" class="button button--outline" id="sb-restart">Start over</button></div><p class="proof-line">Starting point only — we refine scope before any fixed quote.</p></div>';
+root.querySelector("#sb-wa").addEventListener("click",function(){wa("Hi ProLevelThinker — here is my project brief:\n\n"+text,"scope_builder");});
+root.querySelector("#sb-copy").addEventListener("click",function(){if(navigator.clipboard)navigator.clipboard.writeText(text);this.textContent="Copied!";});
+root.querySelector("#sb-restart").addEventListener("click",function(){data={business:"",goal:"",pages:[],features:[],timeline:"",budget:"",notes:""};step=0;render();});}
+render();}
 
-  function initMetaChecker() {
-    var root = document.getElementById("meta-checker-app");
-    if (!root) return;
-    root.innerHTML = '<div class="tool-card"><h3>Check your snippet</h3><p>Titles ~50–60 characters and descriptions ~140–160 characters tend to display cleanly in Google.</p><div class="field"><label for="mc-title">Meta title</label><input id="mc-title" placeholder="e.g. Web Design in Dhaka | Your Brand" maxlength="120"></div><div class="field"><label for="mc-desc">Meta description</label><textarea id="mc-desc" rows="3" placeholder="One or two sentences that earn the click…" maxlength="320"></textarea></div><button type="button" class="button" id="mc-run">Check snippet</button><div id="mc-out" style="margin-top:20px"></div></div>';
-    function esc(s) { return String(s).replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">"); }
-    root.querySelector("#mc-run").addEventListener("click", function () {
-      var title = (root.querySelector("#mc-title").value || "").trim();
-      var desc = (root.querySelector("#mc-desc").value || "").trim();
-      if (!title && !desc) return;
-      track("meta_checker_run", { title_len: title.length, desc_len: desc.length });
-      var tips = [], tScore = 0, dScore = 0;
-      if (title.length >= 30 && title.length <= 60) tScore = 40;
-      else if (title.length > 0 && title.length < 30) { tScore = 20; tips.push("Title is short — add a benefit or keyword."); }
-      else if (title.length > 60) { tScore = 15; tips.push("Title may truncate (aim ≤60 characters)."); }
-      else tips.push("Add a title.");
-      if (desc.length >= 120 && desc.length <= 160) dScore = 40;
-      else if (desc.length > 0 && desc.length < 120) { dScore = 22; tips.push("Description could say more (aim ~140–160)."); }
-      else if (desc.length > 160) { dScore = 18; tips.push("Description may truncate (aim ≤160)."); }
-      else tips.push("Add a meta description.");
-      if (/\b(you|your|free|get|book|call)\b/i.test(desc)) dScore += 5;
-      var total = Math.min(100, tScore + dScore + 15);
-      root.querySelector("#mc-out").innerHTML = '<div class="tool-result" style="text-align:left"><p class="eyebrow">SERP-style preview</p><div style="padding:14px 16px;border-radius:12px;background:#fff;border:1px solid var(--line);margin-bottom:16px"><div style="color:#1a0dab;font-size:1.1rem;font-weight:600">' + esc(title || "Page title preview") + '</div><div style="color:#006621;font-size:.85rem;margin:4px 0">prolevelthinker.vercel.app › example</div><div style="color:#4d5156;font-size:.92rem">' + esc(desc || "Meta description preview.") + '</div></div><div class="score" style="font-size:2rem">' + total + ' <small style="font-size:1rem;color:var(--muted)">/ 100</small></div><p><strong>Title:</strong> ' + title.length + ' chars · <strong>Description:</strong> ' + desc.length + ' chars</p>' + (tips.length ? '<ul class="features">' + tips.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + '</ul>' : '<p>Looks solid for length.</p>') + '<div class="micro-cta-row"><button type="button" class="button button--whatsapp" id="mc-wa">Get a full SEO review</button></div></div>';
-      root.querySelector("#mc-wa").addEventListener("click", function () {
-        wa("Hi ProLevelThinker — I checked my meta tags (title " + title.length + " chars, description " + desc.length + " chars). I'd like a fuller SEO review.", "meta_checker");
-      });
-    });
-  }
+function initMetaChecker(){
+var root=document.getElementById("meta-checker-app");if(!root)return;
+root.innerHTML='<div class="tool-card"><h3>Check your search snippet</h3><p>Titles ~50–60 characters and descriptions ~140–160 characters usually display cleanly.</p><div class="field"><label for="mc-title">Meta title <span id="mc-title-count" style="font-weight:600;color:var(--muted)">0 / 60</span></label><input id="mc-title" placeholder="e.g. Web Design in Dhaka | Your Brand" maxlength="120" autocomplete="off"><div class="tool-progress" style="margin-top:8px"><i id="mc-title-bar" style="width:0%"></i></div></div><div class="field"><label for="mc-desc">Meta description <span id="mc-desc-count" style="font-weight:600;color:var(--muted)">0 / 160</span></label><textarea id="mc-desc" rows="3" placeholder="One or two sentences that earn the click…" maxlength="320"></textarea><div class="tool-progress" style="margin-top:8px"><i id="mc-desc-bar" style="width:0%"></i></div></div><div id="mc-out" style="margin-top:8px"></div></div>';
+var titleEl=root.querySelector("#mc-title"),descEl=root.querySelector("#mc-desc");
+function statusColor(len,min,idealMin,idealMax,max){if(len===0)return"#94a3b8";if(len>=idealMin&&len<=idealMax)return"#16a34a";if(len<min||len>max)return"#dc2626";return"#ca8a04";}
+function analyze(){var title=(titleEl.value||"").trim(),desc=(descEl.value||"").trim(),tLen=title.length,dLen=desc.length;
+root.querySelector("#mc-title-count").textContent=tLen+" / 60";root.querySelector("#mc-desc-count").textContent=dLen+" / 160";
+root.querySelector("#mc-title-bar").style.width=Math.min(100,(tLen/60)*100)+"%";root.querySelector("#mc-title-bar").style.background=statusColor(tLen,30,50,60,70);
+root.querySelector("#mc-desc-bar").style.width=Math.min(100,(dLen/160)*100)+"%";root.querySelector("#mc-desc-bar").style.background=statusColor(dLen,70,120,160,180);
+if(!title&&!desc){root.querySelector("#mc-out").innerHTML='<p class="proof-line">Start typing — preview and tips update live.</p>';return;}
+var tips=[],tScore=0,dScore=0;
+if(tLen>=50&&tLen<=60)tScore=40;else if(tLen>=30&&tLen<50){tScore=28;tips.push("Title is a bit short — add a benefit if natural.");}else if(tLen>60&&tLen<=70){tScore=22;tips.push("Title may truncate on mobile. Put the value first.");}else if(tLen>70){tScore=12;tips.push("Title is likely truncated. Aim for 50–60 characters.");}else if(tLen>0){tScore=15;tips.push("Title is too short.");}else tips.push("Add a title.");
+if(/[|]/.test(title)||/[-–—]/.test(title))tScore+=5;
+if(dLen>=120&&dLen<=160)dScore=40;else if(dLen>=70&&dLen<120){dScore=24;tips.push("Description could say more (aim ~140–160).");}else if(dLen>160){dScore=18;tips.push("Description may truncate — keep CTA early.");}else if(dLen>0){dScore=14;tips.push("Description is short.");}else tips.push("Add a meta description.");
+if(/\b(you|your|free|get|book|call|quote|today)\b/i.test(desc))dScore+=5;
+var total=Math.max(0,Math.min(100,tScore+dScore+10));
+root.querySelector("#mc-out").innerHTML='<div class="tool-result" style="text-align:left;margin-top:12px"><p class="eyebrow">Google-style preview (approximate)</p><div class="serp-preview"><div class="serp-preview__url">prolevelthinker.vercel.app › page</div><div class="serp-preview__title">'+esc(title||"Page title preview")+'</div><div class="serp-preview__desc">'+esc(desc||"Meta description preview.")+'</div></div><div class="score" style="font-size:2rem;margin-top:12px">'+total+' <small style="font-size:1rem;color:var(--muted)">/ 100</small></div><p><strong>Title:</strong> '+tLen+' chars · <strong>Description:</strong> '+dLen+' chars</p>'+(tips.length?'<ul class="features">'+tips.map(function(t){return "<li>"+esc(t)+"</li>";}).join("")+"</ul>":"<p>Length looks solid.</p>")+'<div class="micro-cta-row"><button type="button" class="button button--whatsapp" id="mc-wa">Get a full SEO review</button></div><p class="proof-line">Google may rewrite titles. Clear, accurate titles still win more often.</p></div>';
+var waBtn=root.querySelector("#mc-wa");if(waBtn)waBtn.addEventListener("click",function(){track("meta_checker_run",{title_len:tLen,desc_len:dLen,score:total});wa("Hi ProLevelThinker — I checked my meta tags (title "+tLen+" chars, description "+dLen+" chars, score "+total+"). I'd like a fuller SEO review.","meta_checker");});}
+titleEl.addEventListener("input",analyze);descEl.addEventListener("input",analyze);analyze();}
 
-  function boot() {
-    initStackMatcher();
-    initScopeBuilder();
-    initMetaChecker();
-  }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
-  else boot();
+function initHealthScore(){
+var root=document.getElementById("health-score-app");if(!root)return;
+var questions=[{q:"Is your site clearly usable on a real phone?",options:[{t:"Yes — polished on mobile",s:20},{t:"Mostly OK",s:12},{t:"Awkward / hard to use",s:4},{t:"No site yet",s:0}]},{q:"Can a new visitor tell what you offer and what to do next within 5 seconds?",options:[{t:"Very clear primary CTA",s:20},{t:"Somewhat clear",s:12},{t:"Confusing",s:5},{t:"No site yet",s:0}]},{q:"How does page speed feel on mobile data?",options:[{t:"Fast",s:15},{t:"Acceptable",s:10},{t:"Slow",s:3},{t:"No site yet",s:0}]},{q:"Do you appear for local / service searches in Bangladesh?",options:[{t:"Yes, regularly",s:20},{t:"Sometimes",s:12},{t:"Rarely / never",s:4},{t:"Not sure",s:8}]},{q:"Trust signals: reviews, about, contact, clear process?",options:[{t:"Strong",s:15},{t:"Partial",s:9},{t:"Weak",s:3},{t:"No site yet",s:0}]},{q:"Can visitors contact you easily (form, WhatsApp, phone)?",options:[{t:"Multiple easy paths",s:10},{t:"One path only",s:6},{t:"Hard to find",s:2},{t:"No site yet",s:0}]}];
+var idx=0,score=0;
+function render(){if(idx>=questions.length)return showResult();var q=questions[idx],pct=Math.round((idx/questions.length)*100);
+root.innerHTML=progress(pct)+'<div class="tool-question"><h3>'+(idx+1)+". "+esc(q.q)+'</h3><div class="tool-options"></div></div><p class="proof-line">Honest answers give a useful score.</p>';
+var box=root.querySelector(".tool-options");q.options.forEach(function(opt){var b=document.createElement("button");b.type="button";b.textContent=opt.t;b.addEventListener("click",function(){score+=opt.s;idx++;render();});box.appendChild(b);});}
+function showResult(){track("health_score_complete",{score:score});var label=score>=80?"Strong foundation":score>=55?"Solid — clear gaps to fix":"High opportunity to improve";
+var next=score>=80?"Protect speed and conversion paths as you add content.":score>=55?"Prioritize mobile clarity, one strong CTA, and local trust.":"Start with a clear offer, mobile layout, and an obvious WhatsApp or form path.";
+root.innerHTML='<div class="tool-result"><p class="eyebrow">Your website health score</p><div class="score">'+score+' <small style="font-size:1rem;color:var(--muted)">/ 100</small></div><p><strong>'+label+'</strong></p><p>'+esc(next)+'</p><p class="proof-line">Same lens we use with clients across Bangladesh.</p><div class="micro-cta-row"><button type="button" class="button button--whatsapp" id="hs-wa">Discuss on WhatsApp</button><a class="button button--outline" href="../../tools/stack-matcher/">Match your stack</a><button type="button" class="button button--outline" id="hs-retry">Retake</button></div></div>';
+root.querySelector("#hs-wa").addEventListener("click",function(){wa("Hi ProLevelThinker — my website health score was "+score+"/100. I'd like a short review.","health_score");});
+root.querySelector("#hs-retry").addEventListener("click",function(){idx=0;score=0;render();});}
+render();}
+
+function initEstimator(){
+var root=document.getElementById("estimator-app");if(!root)return;
+var state={pages:"5",platform:"wordpress",extras:[]};
+function estimate(){var base=35000;if(state.pages==="6-10")base=55000;if(state.pages==="11+")base=85000;if(state.platform==="shopify")base=Math.round(base*1.15);if(state.platform==="custom")base=Math.max(150000,Math.round(base*2.2));if(state.extras.indexOf("seo")!==-1)base+=25000;if(state.extras.indexOf("ecommerce")!==-1)base+=40000;if(state.extras.indexOf("care")!==-1)base+=15000;if(state.extras.indexOf("booking")!==-1)base+=30000;return{low:base,high:Math.round(base*1.35)};}
+function render(){var e=estimate();
+root.innerHTML='<div class="tool-card"><h3>Indicative project range (৳)</h3><p>Planning ranges for typical Bangladesh SME projects — not a fixed quote.</p><div class="field"><label for="est-pages">Core pages</label><select id="est-pages"><option value="5"'+(state.pages==="5"?" selected":"")+'>Up to 5</option><option value="6-10"'+(state.pages==="6-10"?" selected":"")+'>6–10</option><option value="11+"'+(state.pages==="11+"?" selected":"")+'>11+</option></select></div><div class="field"><label for="est-platform">Platform</label><select id="est-platform"><option value="wordpress"'+(state.platform==="wordpress"?" selected":"")+'>WordPress / builder</option><option value="shopify"'+(state.platform==="shopify"?" selected":"")+'>Shopify</option><option value="custom"'+(state.platform==="custom"?" selected":"")+'>Custom (React / Next.js)</option></select></div><div class="field"><label>Extras</label><label class="consent"><input type="checkbox" id="ex-seo"'+(state.extras.indexOf("seo")!==-1?" checked":"")+'> SEO foundations</label><label class="consent"><input type="checkbox" id="ex-ecom"'+(state.extras.indexOf("ecommerce")!==-1?" checked":"")+'> E-commerce features</label><label class="consent"><input type="checkbox" id="ex-booking"'+(state.extras.indexOf("booking")!==-1?" checked":"")+'> Booking / appointments</label><label class="consent"><input type="checkbox" id="ex-care"'+(state.extras.indexOf("care")!==-1?" checked":"")+'> 3-month care plan</label></div><div class="tool-result" style="margin-top:16px"><div class="score" style="font-size:clamp(1.5rem,4vw,2rem)">৳'+e.low.toLocaleString("en-BD")+' – ৳'+e.high.toLocaleString("en-BD")+'</div><p>Ontario strategy · Sylhet engineering</p><div class="micro-cta-row"><button type="button" class="button button--whatsapp" id="est-wa">Get this on WhatsApp</button><a class="button button--outline" href="../../tools/scope-builder/">Build a full brief</a></div><p class="proof-line">Launch ~৳35k · Growth ~৳85k+ · Custom scoped separately</p></div></div>';
+function sync(){state.pages=root.querySelector("#est-pages").value;state.platform=root.querySelector("#est-platform").value;state.extras=[];if(root.querySelector("#ex-seo").checked)state.extras.push("seo");if(root.querySelector("#ex-ecom").checked)state.extras.push("ecommerce");if(root.querySelector("#ex-booking").checked)state.extras.push("booking");if(root.querySelector("#ex-care").checked)state.extras.push("care");track("estimator_update",{pages:state.pages,platform:state.platform});render();}
+["#est-pages","#est-platform","#ex-seo","#ex-ecom","#ex-booking","#ex-care"].forEach(function(sel){root.querySelector(sel).addEventListener("change",sync);});
+root.querySelector("#est-wa").addEventListener("click",function(){var e2=estimate();track("estimator_complete",{low:e2.low,high:e2.high});wa("Hi ProLevelThinker — estimator showed roughly ৳"+e2.low+"–৳"+e2.high+" ("+state.platform+", "+state.pages+" pages). I'd like a real quote.","estimator");});}
+render();}
+
+function boot(){initStackMatcher();initScopeBuilder();initMetaChecker();initHealthScore();initEstimator();var y=document.querySelector("#year");if(y&&!y.textContent)y.textContent=String(new Date().getFullYear());}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 })();
