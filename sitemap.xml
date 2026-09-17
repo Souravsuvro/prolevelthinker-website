@@ -14,6 +14,13 @@
   <url><loc>https://prolevelthinker.vercel.app/insights/wordpress-shopify-nextjs-comparison/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://prolevelthinker.vercel.app/insights/seo-service-page-guide/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://prolevelthinker.vercel.app/insights/website-conversion-guide/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://prolevelthinker.vercel.app/tools/</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://prolevelthinker.vercel.app/tools/stack-matcher/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://prolevelthinker.vercel.app/tools/scope-builder/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://prolevelthinker.vercel.app/tools/meta-checker/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://prolevelthinker.vercel.app/tools/website-health-score/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://prolevelthinker.vercel.app/tools/project-estimator/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://prolevelthinker.vercel.app/teardowns/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://prolevelthinker.vercel.app/privacy-policy/</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://prolevelthinker.vercel.app/terms/</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
 </urlset>
